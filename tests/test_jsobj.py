@@ -18,8 +18,13 @@ def random_key(faker):
 
 
 @pytest.fixture
-def random_value(faker):
-    value_choices = [
+def random_key2(faker):
+    return faker.pystr()
+
+
+@pytest.fixture
+def random_list(faker):
+    return [
         faker.pydict(),
         faker.pybool(),
         faker.pydecimal(),
@@ -28,7 +33,11 @@ def random_value(faker):
         faker.pystr(),
         faker.pylist(),
     ]
-    return random.choice(value_choices)
+
+
+@pytest.fixture
+def random_value(random_list):
+    return random.choice(random_list)
 
 
 def test_empty_init():
@@ -103,37 +112,62 @@ def test_iter(random_dict):
     assert list(iter(JsObj(random_dict.copy()))) == list(iter(random_dict))
 
 
-def test_str():
-    pass
+def test_str(random_dict):
+    obj = JsObj(random_dict)
+    assert str(obj) == str(random_dict)
 
 
-def test_get_method():
-    pass
+def test_get_method(random_key, random_value):
+    obj = JsObj({random_key: random_value})
+    assert obj[random_key] == getattr(obj, random_key)
 
 
-def test_set_method():
-    pass
+def test_get_dict(random_key, random_dict):
+    obj = JsObj({random_key: random_dict})
+    assert obj[random_key] == getattr(obj, random_key)
 
 
-def test_keys():
-    pass
+def test_set_method(random_key, random_value):
+    obj = JsObj()
+    setattr(obj, random_key, random_value)
+    assert obj[random_key] == getattr(obj, random_key)
 
 
-def test_items():
-    pass
+def test_keys(random_dict):
+    keys = random_dict.keys()
+    obj = JsObj(random_dict)
+    assert obj.keys() == keys
 
 
-def test_values():
-    pass
+def test_items(random_dict):
+    items = random_dict.items()
+    obj = JsObj(random_dict)
+    assert obj.items() == items
 
 
-def test_pop():
-    pass
+def test_values(random_dict):
+    values = random_dict.values()
+    obj = JsObj(random_dict)
+    # dict_values __eq__ NotImplemented
+    assert list(values) == list(obj.values())
 
 
-def test_update():
-    pass
+def test_pop(random_key, random_value):
+    obj = JsObj({random_key: random_value})
+    obj.pop(random_key)
+    assert random_key not in obj
 
 
-def test_to_json():
-    pass
+def test_to_json(random_key, random_key2, random_value, random_dict):
+    data = {
+        random_key: random_value,
+        random_key2: random_dict
+    }
+    obj = JsObj(data)
+    assert obj.to_json() == data
+
+
+def test_to_json_value_is_list(random_list, random_key):
+    data = {random_key: random_list}
+    obj = JsObj(data)
+    return obj.to_json() == data

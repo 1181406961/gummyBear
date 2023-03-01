@@ -59,10 +59,15 @@ class JsObj(Mapping):
         return self.dictionary.__contains__(item)
 
     def __eq__(self, other):
+        if isinstance(other, JsObj):
+            other = other.dictionary
         return self.dictionary.__eq__(other)
 
     def __str__(self):
         return self.dictionary.__str__()
+
+    def __repr__(self):
+        return self.__str__()
 
     def get(self, key: str, default=None):
         try:
@@ -88,17 +93,12 @@ class JsObj(Mapping):
         '''
         return self.dictionary.pop(key, default)
 
-    def update(self, kwargs: Mapping):
-        if isinstance(kwargs, JsObj):
-            kwargs = kwargs.dictionary
-        self.dictionary.update(**kwargs)
-
     def to_json(self):
         result = {}
         for key, value in self.dictionary.items():
             if isinstance(value, JsObj):
                 result[key] = value.to_json()
-            elif isinstance(value, Sequence):
+            elif isinstance(value, list):
                 result[key] = [item if not isinstance(item, JsObj) else item.to_json() for item in value]
             else:
                 result[key] = value
